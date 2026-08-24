@@ -1,0 +1,16 @@
+Tâche: Open Relation Extraction (ORE).
+À partir du texte et des entités, extrais les triplets relationnels.
+Format JSON strict:
+{"triplets":[
+ {"subject":{"mention":"...","types":["...","..."]},
+  "relation":"...",
+  "object":{"mention":"...","types":["...","..."]}}
+]}
+
+Contraintes:
+- Relation courte, claire, en français
+- Ne garder que les relations inférables du texte
+Texte:
+{{TEXT}}
+Entités:
+{{ENTITIES_JSON}}
