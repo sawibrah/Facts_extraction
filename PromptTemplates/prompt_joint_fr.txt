@@ -1,0 +1,10 @@
+Tâche: JOINT ONIE (entités + relations en une seule passe).
+Retourne JSON strict:
+{"entities":[...], "triplets":[...]}
+
+Règles:
+- Entités avec types [spécifique, hyperonyme]
+- Triplets factuels, non spéculatifs
+- Français uniquement
+Texte:
+{{TEXT}}
