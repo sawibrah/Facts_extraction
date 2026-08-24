@@ -1,0 +1,14 @@
+Tâche: Open Named Entity Recognition (ONER).
+Extrait toutes les entités nommées du texte en français.
+Pour chaque entité, fournis 2 types:
+1) type spécifique au contexte
+2) hyperonyme général
+Format JSON strict:
+{"entities":[{"mention":"...","types":["...","..."]}]}
+
+Contraintes:
+- Types en français
+- Pas de doublons
+- Pas d'entités implicites non mentionnées
+Texte:
+{{TEXT}}
