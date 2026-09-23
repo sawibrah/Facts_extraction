@@ -23,6 +23,9 @@ def iter_records(path: Path) -> Iterator[dict]:
         prefix = f.read(4096)
         f.seek(0)
         if prefix.lstrip("\ufeff \t\r\n").startswith("["):
+            # Top-level JSON arrays are supported for convenience, but they are
+            # loaded into memory at once. Prefer JSONL/NDJSON exports for large
+            # datasets so records can be streamed incrementally.
             data = json.load(f)
             for item in data:
                 if isinstance(item, dict):
@@ -109,7 +112,9 @@ def write_jsonl(rows: Iterable[dict], output_path: Path) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Clean article exports into JSONL for ONIE tests.")
+    parser = argparse.ArgumentParser(
+        description="Clean article exports into JSONL for ONIE tests. Prefer JSONL/NDJSON for large datasets."
+    )
     parser.add_argument("input", nargs="?", default="results1.json", help="Input JSON/JSONL file or directory")
     parser.add_argument(
         "--output",
