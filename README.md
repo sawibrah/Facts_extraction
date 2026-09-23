@@ -15,6 +15,20 @@ The project focuses on explaining and presenting a research paper that introduce
 ## Repository Contents
 
 - `slides.md` — a 12-slide presentation deck in Markdown format.
+- `LLIMONIIE_step_by_step_test.ipynb` — a notebook that aligns this repo with the reference LLIMONIIE workflow for step-by-step tests on your dataset.
+- `scripts/01_parse_and_clean.py` — a configurable cleaner that converts raw article exports into JSONL for notebook tests.
+- `PromptTemplates/` — local prompt assets for NER, RE, and JOINT extraction stages.
+
+## Step-by-step notebook workflow
+
+The notebook `/home/runner/work/Facts_extraction/Facts_extraction/LLIMONIIE_step_by_step_test.ipynb` mirrors the reference implementation stages with the assets in this repository:
+
+1. **Dataset cleaning** → `/home/runner/work/Facts_extraction/Facts_extraction/scripts/01_parse_and_clean.py`
+2. **NER prompt stage** → `/home/runner/work/Facts_extraction/Facts_extraction/PromptTemplates/prompt_ner.txt`
+3. **RE prompt stage** → `/home/runner/work/Facts_extraction/Facts_extraction/PromptTemplates/prompt_re_fr.txt`
+4. **JOINT prompt stage** → `/home/runner/work/Facts_extraction/Facts_extraction/PromptTemplates/prompt_joint_fr.txt`
+
+The cleaner now accepts a user-supplied input file or directory, output file, and minimum content length so the notebook can be pointed at a custom dataset export folder.
 
 ## Presentation Highlights
 

@@ -38,6 +38,19 @@ def iter_records(path: Path) -> Iterator[dict]:
         i += 1
 
 
+def iter_input_files(path: Path) -> Iterator[Path]:
+    if path.is_file():
+        yield path
+        return
+
+    if not path.is_dir():
+        raise FileNotFoundError(path)
+
+    for candidate in sorted(path.rglob("*")):
+        if candidate.suffix.lower() in {".json", ".jsonl", ".ndjson"}:
+            yield candidate
+
+
 def normalize_article(article: dict) -> dict:
     return {
         "id": article.get("identifiantArticle") or article.get("id"),
@@ -55,10 +68,11 @@ def normalize_article(article: dict) -> dict:
 
 def read_bulk_json(path: str, min_content_length: int = 200) -> list[dict]:
     rows = []
-    for article in iter_records(Path(path)):
-        row = normalize_article(article)
-        if len(row["content"]) > min_content_length:
-            rows.append(row)
+    for input_path in iter_input_files(Path(path)):
+        for article in iter_records(input_path):
+            row = normalize_article(article)
+            if len(row["content"]) > min_content_length:
+                rows.append(row)
     return rows
 
 
@@ -73,7 +87,7 @@ def write_jsonl(rows: Iterable[dict], output_path: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Clean article exports into JSONL for ONIE tests.")
-    parser.add_argument("input", nargs="?", default="results1.json", help="Input JSON/JSONL file")
+    parser.add_argument("input", nargs="?", default="results1.json", help="Input JSON/JSONL file or directory")
     parser.add_argument(
         "--output",
         default="out/articles_clean.jsonl",
