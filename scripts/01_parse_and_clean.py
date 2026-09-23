@@ -20,7 +20,8 @@ def iter_records(path: Path) -> Iterator[dict]:
         if first_char == "[":
             data = json.load(f)
             for item in data:
-                yield item
+                if isinstance(item, dict):
+                    yield item
             return
 
         lines = [ln.strip() for ln in f if ln.strip()]
@@ -32,22 +33,27 @@ def iter_records(path: Path) -> Iterator[dict]:
             i += 1
             if i >= len(lines):
                 break
-            yield json.loads(lines[i])
-        else:
+            article = json.loads(lines[i])
+            if isinstance(article, dict):
+                yield article
+        elif isinstance(obj, dict):
             yield obj
         i += 1
 
 
-def iter_input_files(path: Path) -> Iterator[Path]:
+def iter_input_files(path: Path, excluded_paths: set[Path] | None = None) -> Iterator[Path]:
+    excluded_paths = excluded_paths or set()
     if path.is_file():
-        yield path
+        resolved = path.resolve()
+        if resolved not in excluded_paths:
+            yield path
         return
 
     if not path.is_dir():
         raise FileNotFoundError(path)
 
     for candidate in sorted(path.rglob("*")):
-        if candidate.suffix.lower() in {".json", ".jsonl", ".ndjson"}:
+        if candidate.suffix.lower() in {".json", ".jsonl", ".ndjson"} and candidate.resolve() not in excluded_paths:
             yield candidate
 
 
@@ -66,9 +72,9 @@ def normalize_article(article: dict) -> dict:
 
 
 
-def read_bulk_json(path: str, min_content_length: int = 200) -> list[dict]:
+def read_bulk_json(path: str, min_content_length: int = 200, excluded_paths: set[Path] | None = None) -> list[dict]:
     rows = []
-    for input_path in iter_input_files(Path(path)):
+    for input_path in iter_input_files(Path(path), excluded_paths=excluded_paths):
         for article in iter_records(input_path):
             row = normalize_article(article)
             if len(row["content"]) > min_content_length:
@@ -101,8 +107,12 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    data = read_bulk_json(args.input, min_content_length=args.min_content_length)
     output_path = Path(args.output)
+    data = read_bulk_json(
+        args.input,
+        min_content_length=args.min_content_length,
+        excluded_paths={output_path.resolve()},
+    )
     write_jsonl(data, output_path)
     print("saved:", len(data), "->", output_path)
 
