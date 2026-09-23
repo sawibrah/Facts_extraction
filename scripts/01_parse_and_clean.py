@@ -24,21 +24,25 @@ def iter_records(path: Path) -> Iterator[dict]:
                     yield item
             return
 
-        lines = [ln.strip() for ln in f if ln.strip()]
+        expect_article = False
+        for raw_line in f:
+            line = raw_line.strip()
+            if not line:
+                continue
 
-    i = 0
-    while i < len(lines):
-        obj = json.loads(lines[i])
-        if isinstance(obj, dict) and "index" in obj:
-            i += 1
-            if i >= len(lines):
-                break
-            article = json.loads(lines[i])
-            if isinstance(article, dict):
-                yield article
-        elif isinstance(obj, dict):
-            yield obj
-        i += 1
+            obj = json.loads(line)
+            if expect_article:
+                expect_article = False
+                if isinstance(obj, dict):
+                    yield obj
+                continue
+
+            if isinstance(obj, dict) and "index" in obj:
+                expect_article = True
+                continue
+
+            if isinstance(obj, dict):
+                yield obj
 
 
 def iter_input_files(path: Path, excluded_paths: set[Path] | None = None) -> Iterator[Path]:
