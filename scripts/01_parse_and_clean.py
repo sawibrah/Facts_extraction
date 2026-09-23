@@ -1,5 +1,6 @@
 import argparse
 import json
+import os
 import re
 from pathlib import Path
 from typing import Iterable, Iterator
@@ -61,13 +62,16 @@ def iter_input_files(path: Path, excluded_paths: set[Path] | None = None) -> Ite
     if not path.is_dir():
         raise FileNotFoundError(path)
 
-    for candidate in sorted(path.rglob("*")):
-        if any(part in skipped_dir_names for part in candidate.parts):
-            continue
-        if any(part.startswith(".") for part in candidate.parts[:-1]):
-            continue
-        if candidate.suffix.lower() in {".json", ".jsonl", ".ndjson"} and candidate.resolve() not in excluded_paths:
-            yield candidate
+    for root, dirnames, filenames in os.walk(path):
+        dirnames[:] = [
+            dirname
+            for dirname in dirnames
+            if dirname not in skipped_dir_names and not dirname.startswith(".")
+        ]
+        for filename in sorted(filenames):
+            candidate = Path(root) / filename
+            if candidate.suffix.lower() in {".json", ".jsonl", ".ndjson"} and candidate.resolve() not in excluded_paths:
+                yield candidate
 
 
 def normalize_article(article: dict) -> dict:
