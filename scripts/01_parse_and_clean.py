@@ -125,7 +125,7 @@ def main() -> None:
         "--min-content-length",
         type=int,
         default=200,
-        help="Minimum cleaned content length to keep a document",
+        help="Minimum cleaned content length to keep a document (inclusive threshold)",
     )
     args = parser.parse_args()
 

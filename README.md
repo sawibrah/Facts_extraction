@@ -28,7 +28,7 @@ The notebook `LLIMONIE_step_by_step_test.ipynb` mirrors the reference implementa
 3. **RE prompt stage** → `PromptTemplates/prompt_re_fr.txt`
 4. **JOINT prompt stage** → `PromptTemplates/prompt_joint_fr.txt`
 
-The cleaner now accepts a user-supplied input file or directory, output file, and minimum content length so the notebook can be pointed at a custom dataset export folder.
+The cleaner now accepts a user-supplied input file or directory, output file, and an inclusive minimum content length so the notebook can be pointed at a custom dataset export folder.
 
 ## Presentation Highlights
 
