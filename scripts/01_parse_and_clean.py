@@ -51,6 +51,7 @@ def iter_records(path: Path) -> Iterator[dict]:
 
 def iter_input_files(path: Path, excluded_paths: set[Path] | None = None) -> Iterator[Path]:
     excluded_paths = excluded_paths or set()
+    skipped_dir_names = {".git", ".venv", "venv", "env", "__pycache__", "site-packages", "node_modules", ".ipynb_checkpoints"}
     if path.is_file():
         resolved = path.resolve()
         if resolved not in excluded_paths:
@@ -61,6 +62,10 @@ def iter_input_files(path: Path, excluded_paths: set[Path] | None = None) -> Ite
         raise FileNotFoundError(path)
 
     for candidate in sorted(path.rglob("*")):
+        if any(part in skipped_dir_names for part in candidate.parts):
+            continue
+        if any(part.startswith(".") for part in candidate.parts[:-1]):
+            continue
         if candidate.suffix.lower() in {".json", ".jsonl", ".ndjson"} and candidate.resolve() not in excluded_paths:
             yield candidate
 

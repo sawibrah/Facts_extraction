@@ -15,13 +15,13 @@ The project focuses on explaining and presenting a research paper that introduce
 ## Repository Contents
 
 - `slides.md` — a 12-slide presentation deck in Markdown format.
-- `LLIMONIIE_step_by_step_test.ipynb` — a notebook that aligns this repo with the reference LLIMONIIE workflow for step-by-step tests on your dataset.
+- `LLIMONIE_step_by_step_test.ipynb` — a notebook that aligns this repo with the `leonardoPiano/LLIMONIE` reference workflow for step-by-step tests on your dataset.
 - `scripts/01_parse_and_clean.py` — a configurable cleaner that converts raw article exports into JSONL for notebook tests.
 - `PromptTemplates/` — local prompt assets for NER, RE, and JOINT extraction stages.
 
 ## Step-by-step notebook workflow
 
-The notebook `LLIMONIIE_step_by_step_test.ipynb` mirrors the reference implementation stages with the assets in this repository:
+The notebook `LLIMONIE_step_by_step_test.ipynb` mirrors the reference implementation stages with the assets in this repository:
 
 1. **Dataset cleaning** → `scripts/01_parse_and_clean.py`
 2. **NER prompt stage** → `PromptTemplates/prompt_ner.txt`
