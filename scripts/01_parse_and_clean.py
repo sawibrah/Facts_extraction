@@ -1,5 +1,9 @@
-import json, re
+import argparse
+import json
+import re
 from pathlib import Path
+from typing import Iterable, Iterator
+
 
 def clean_text(t: str) -> str:
     if not t:
@@ -8,39 +12,86 @@ def clean_text(t: str) -> str:
     t = re.sub(r"\s+", " ", t).strip()
     return t
 
-def read_bulk_json(path):
-    rows = []
-    with open(path, "r", encoding="utf-8") as f:
+
+def iter_records(path: Path) -> Iterator[dict]:
+    with path.open("r", encoding="utf-8") as f:
+        first_char = f.read(1)
+        f.seek(0)
+        if first_char == "[":
+            data = json.load(f)
+            for item in data:
+                yield item
+            return
+
         lines = [ln.strip() for ln in f if ln.strip()]
+
     i = 0
     while i < len(lines):
         obj = json.loads(lines[i])
-        if "index" in obj:
+        if isinstance(obj, dict) and "index" in obj:
             i += 1
-            if i >= len(lines): break
-            art = json.loads(lines[i])
+            if i >= len(lines):
+                break
+            yield json.loads(lines[i])
         else:
-            art = obj
-        row = {
-            "id": art.get("identifiantArticle"),
-            "url": art.get("urlArticle"),
-            "source": art.get("sourceArticle"),
-            "title": clean_text(art.get("titreArticle","")),
-            "summary": clean_text(art.get("resumeArticle","")),
-            "content": clean_text(art.get("contenuArticle","")),
-            "keywords": clean_text(art.get("motsClesArticle","")),
-            "published_at": art.get("datePublicationArticle"),
-            "collected_at": art.get("dateCollecteArticle"),
-        }
-        if len(row["content"]) > 200:   # minimum text length filter
-            rows.append(row)
+            yield obj
         i += 1
+
+
+def normalize_article(article: dict) -> dict:
+    return {
+        "id": article.get("identifiantArticle") or article.get("id"),
+        "url": article.get("urlArticle") or article.get("url"),
+        "source": article.get("sourceArticle") or article.get("source"),
+        "title": clean_text(article.get("titreArticle") or article.get("title", "")),
+        "summary": clean_text(article.get("resumeArticle") or article.get("summary", "")),
+        "content": clean_text(article.get("contenuArticle") or article.get("content", "")),
+        "keywords": clean_text(article.get("motsClesArticle") or article.get("keywords", "")),
+        "published_at": article.get("datePublicationArticle") or article.get("published_at"),
+        "collected_at": article.get("dateCollecteArticle") or article.get("collected_at"),
+    }
+
+
+
+def read_bulk_json(path: str, min_content_length: int = 200) -> list[dict]:
+    rows = []
+    for article in iter_records(Path(path)):
+        row = normalize_article(article)
+        if len(row["content"]) > min_content_length:
+            rows.append(row)
     return rows
 
+
+
+def write_jsonl(rows: Iterable[dict], output_path: Path) -> None:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with output_path.open("w", encoding="utf-8") as w:
+        for row in rows:
+            w.write(json.dumps(row, ensure_ascii=False) + "\n")
+
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Clean article exports into JSONL for ONIE tests.")
+    parser.add_argument("input", nargs="?", default="results1.json", help="Input JSON/JSONL file")
+    parser.add_argument(
+        "--output",
+        default="out/articles_clean.jsonl",
+        help="Output JSONL file",
+    )
+    parser.add_argument(
+        "--min-content-length",
+        type=int,
+        default=200,
+        help="Minimum cleaned content length to keep a document",
+    )
+    args = parser.parse_args()
+
+    data = read_bulk_json(args.input, min_content_length=args.min_content_length)
+    output_path = Path(args.output)
+    write_jsonl(data, output_path)
+    print("saved:", len(data), "->", output_path)
+
+
 if __name__ == "__main__":
-    data = read_bulk_json("results1.json")
-    Path("out").mkdir(exist_ok=True)
-    with open("out/articles_clean.jsonl", "w", encoding="utf-8") as w:
-        for r in data:
-            w.write(json.dumps(r, ensure_ascii=False) + "\n")
-    print("saved:", len(data))
+    main()
