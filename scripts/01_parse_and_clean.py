@@ -5,6 +5,10 @@ from pathlib import Path
 from typing import Iterable, Iterator
 
 
+def is_bulk_action(obj: dict) -> bool:
+    return len(obj) == 1 and next(iter(obj)) in {"index", "create", "update", "delete"}
+
+
 def clean_text(t: str) -> str:
     if not t:
         return ""
@@ -14,10 +18,10 @@ def clean_text(t: str) -> str:
 
 
 def iter_records(path: Path) -> Iterator[dict]:
-    with path.open("r", encoding="utf-8") as f:
-        first_char = f.read(1)
+    with path.open("r", encoding="utf-8-sig") as f:
+        prefix = f.read(4096)
         f.seek(0)
-        if first_char == "[":
+        if prefix.lstrip("\ufeff \t\r\n").startswith("["):
             data = json.load(f)
             for item in data:
                 if isinstance(item, dict):
@@ -37,7 +41,7 @@ def iter_records(path: Path) -> Iterator[dict]:
                     yield obj
                 continue
 
-            if isinstance(obj, dict) and "index" in obj:
+            if isinstance(obj, dict) and is_bulk_action(obj):
                 expect_article = True
                 continue
 
