@@ -77,7 +77,7 @@ def read_bulk_json(path: str, min_content_length: int = 200, excluded_paths: set
     for input_path in iter_input_files(Path(path), excluded_paths=excluded_paths):
         for article in iter_records(input_path):
             row = normalize_article(article)
-            if len(row["content"]) > min_content_length:
+            if len(row["content"]) >= min_content_length:
                 rows.append(row)
     return rows
 
